@@ -1,58 +1,46 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo:6.0 # Using MongoDB 6.0
-    container_name: tiktok_mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db # Persist data
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password}
-    networks:
-      - tiktok_network
-
+  # The API Gateway Service
   api-gateway:
     build:
-      context: . # Build context is the monorepo root
+      context: .
       dockerfile: ./apps/api-gateway/Dockerfile
-      target: development # Use the development stage (or production for smaller image)
-    container_name: tiktok_api_gateway
+      args:
+        APP_NAME: api-gateway
+    container_name: api-gateway
     ports:
-      - "3000:3000" # Expose API Gateway to host
+      # Exposes the gateway to the outside world on port 8080
+      - "8080:3000"
     environment:
-      # These will be passed from .env to the container
-      PORT: 3000
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key}
-      USER_SERVICE_URL: http://user-service:3001 # Communicate via Docker network
-      AUTH_SERVICE_URL: http://auth-service:3002
+      # These variables are available inside the container
+      - PORT=3000
+      # Docker Compose automatically creates a network.
+      # Services can talk to each other using their service name as the hostname.
+      - USER_SERVICE_HOST=user-service # <-- IMPORTANT!
+      - USER_SERVICE_PORT=3001
     depends_on:
-      - user-service # Ensure user-service is running before starting gateway
+      - user-service
     networks:
-      - tiktok_network
+      - tiktok_clone_net
 
+  # The User Management Service
   user-service:
     build:
       context: .
       dockerfile: ./apps/user-service/Dockerfile
-      target: development
-    container_name: tiktok_user_service
-    ports:
-      - "3001:3001" # Expose User Service (optional, can be internal)
+      args:
+        APP_NAME: user-service
+    container_name: user-service
+    # No ports needed here, as it's only accessed internally by the gateway
+    # This is more secure. If you need to access it directly for debugging, you can add:
+    # ports:
+    #   - "3001:3001"
     environment:
-      PORT: 3001
-      MONGODB_URI: mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017/tiktok_users?authSource=admin # Connect to MongoDB
-      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-your-tiktok-avatars-bucket}
-    depends_on:
-      - mongodb # Ensure MongoDB is running before starting user-service
+      - PORT=3001
     networks:
-      - tiktok_network
-
-volumes:
-  mongodb_data:
+      - tiktok_clone_net
 
 networks:
-  tiktok_network:
+  tiktok_clone_net:
     driver: bridge

@@ -1,11 +1,12 @@
-import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import { Module,  } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { HttpModule } from '@nestjs/axios';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { JwtAuthGuard } from '../auth/jwt.guard';
+// import { JwtAuthGuard } from '../auth/jwt.guard';
 import * as Joi from 'joi'; // For environment variable validation
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -24,6 +25,17 @@ import * as Joi from 'joi'; // For environment variable validation
       signOptions: { expiresIn: '15m' }, // Matches auth service access token
     }),
     HttpModule, // For making HTTP requests to other services
+        ClientsModule.register([
+      {
+        name: 'USER_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          // Use environment variables for host and port!
+          host: process.env.USER_SERVICE_HOST || 'localhost',
+          port: parseInt(process.env.USER_SERVICE_PORT, 10) || 3001,
+        },
+      },
+    ]),
   ],
   controllers: [AppController],
   providers: [AppService],

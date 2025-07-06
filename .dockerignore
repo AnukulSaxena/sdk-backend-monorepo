@@ -1,0 +1,23 @@
+# Docker files
+Dockerfile
+.dockerignore
+
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+npm-debug.log
+
+# NX
+dist
+tmp
+.nx/cache
+
+# Editor
+.idea
+.vscode
+
+# Environment
+.env
