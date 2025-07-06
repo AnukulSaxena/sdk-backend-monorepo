@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0 # Using MongoDB 6.0
+    container_name: tiktok_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db # Persist data
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password}
+    networks:
+      - tiktok_network
+
+  api-gateway:
+    build:
+      context: . # Build context is the monorepo root
+      dockerfile: ./apps/api-gateway/Dockerfile
+      target: development # Use the development stage (or production for smaller image)
+    container_name: tiktok_api_gateway
+    ports:
+      - "3000:3000" # Expose API Gateway to host
+    environment:
+      # These will be passed from .env to the container
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key}
+      USER_SERVICE_URL: http://user-service:3001 # Communicate via Docker network
+      AUTH_SERVICE_URL: http://auth-service:3002
+    depends_on:
+      - user-service # Ensure user-service is running before starting gateway
+    networks:
+      - tiktok_network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: ./apps/user-service/Dockerfile
+      target: development
+    container_name: tiktok_user_service
+    ports:
+      - "3001:3001" # Expose User Service (optional, can be internal)
+    environment:
+      PORT: 3001
+      MONGODB_URI: mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017/tiktok_users?authSource=admin # Connect to MongoDB
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-your-tiktok-avatars-bucket}
+    depends_on:
+      - mongodb # Ensure MongoDB is running before starting user-service
+    networks:
+      - tiktok_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  tiktok_network:
+    driver: bridge
