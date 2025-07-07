@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   # The API Gateway Service
@@ -32,6 +31,8 @@ services:
       args:
         APP_NAME: user-service
     container_name: user-service
+    env_file:
+      - ./apps/user-service/.env
     # No ports needed here, as it's only accessed internally by the gateway
     # This is more secure. If you need to access it directly for debugging, you can add:
     # ports:

@@ -33,6 +33,7 @@ export class JwtAuthGuard implements CanActivate {
       console.log(`API Gateway: JWT present for request: ${request.path}`);
       request['user'] = { userId: 'mock-user-id', username: 'mockuser' }; // Mock user for demo
     } catch (e) {
+      
       throw new UnauthorizedException('Invalid or expired token.');
     }
     return true;

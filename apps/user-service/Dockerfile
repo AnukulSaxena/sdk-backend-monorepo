@@ -17,10 +17,6 @@ ENV APP_NAME=$APP_NAME
 COPY package.json package-lock.json ./
 COPY nx.json tsconfig.base.json ./
 
-# Install all dependencies (including dev dependencies needed for build)
-# Using --legacy-peer-deps for compatibility if needed
-RUN npm install --legacy-peer-deps
-
 # Copy the entire monorepo source code
 COPY . .
 
