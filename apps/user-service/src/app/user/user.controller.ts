@@ -9,6 +9,10 @@ export class UserController {
 
   @MessagePattern({ cmd: 'create_user' })
   async createUser(@Payload() createUserDto: CreateUserDto) {
+
+    // Log the incoming data for debugging purposes
+    console.log('User Service: Creating user withsdf data:', createUserDto);
     return this.userService.createUser(createUserDto);
+    
   }
 }

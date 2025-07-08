@@ -8,6 +8,8 @@ services:
       args:
         APP_NAME: api-gateway
     container_name: api-gateway
+    env_file:
+      - ./apps/api-gateway/.env
     ports:
       # Exposes the gateway to the outside world on port 8080
       - "8080:3000"
