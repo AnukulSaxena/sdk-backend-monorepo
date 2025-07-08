@@ -1,4 +1,3 @@
-
 services:
   # The API Gateway Service
   api-gateway:
@@ -20,6 +19,10 @@ services:
       # Services can talk to each other using their service name as the hostname.
       - USER_SERVICE_HOST=user-service # <-- IMPORTANT!
       - USER_SERVICE_PORT=3001
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npx nx serve api-gateway
     depends_on:
       - user-service
     networks:
@@ -41,6 +44,10 @@ services:
     #   - "3001:3001"
     environment:
       - PORT=3001
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npx nx serve user-service
     networks:
       - tiktok_clone_net
 

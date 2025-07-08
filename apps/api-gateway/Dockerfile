@@ -1,46 +1,26 @@
 # ARG to make the Dockerfile reusable for other apps
-ARG APP_NAME=api-gateway
+ARG APP_NAME=api-gateway 
 ARG NODE_VERSION=22-alpine
 
-# ---- Stage 1: Builder ----
-FROM node:${NODE_VERSION} AS builder
+FROM node:${NODE_VERSION} 
 
+# Set environment variables for the app and watcher
 WORKDIR /usr/src/app
 
 # Set build-time variables
 ARG APP_NAME
 ENV APP_NAME=$APP_NAME
 
-# Step 1: Copy package files and install dev dependencies
+# This is crucial for file watch events when mounting volumes from the host
+ENV CHOKIDAR_USEPOLLING=true
+
+# Copy package.json and package-lock.json first to leverage Docker cache
+# This layer will only be rebuilt if these files change
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Step 2: Copy Nx workspace configs (needed by the build)
-COPY nx.json tsconfig.base.json ./
+# Expose the default port for Nx dev server (often 3000, 3001, etc. - check your project.json)
+# Assuming 3000 for api-gateway based on your production Dockerfile
+EXPOSE 3000
 
-# Step 3: Copy everything else
-COPY . .
-
-# Step 4: Build target app
-RUN npx nx build ${APP_NAME} --prod
-
-# ---- Stage 2: Production ----
-FROM node:${NODE_VERSION} AS production
-
-WORKDIR /usr/src/app
-
-ARG APP_NAME
-ENV APP_NAME=${APP_NAME}
-
-# Copy production dependencies
-COPY package.json package-lock.json ./
-RUN npm install --production
-
-# Copy built output from builder
-COPY --from=builder /usr/src/app/dist/apps/${APP_NAME} ./
-
-# Set exposed port
-EXPOSE 3001
-
-# Run the app
-CMD ["node", "main.js"]
+CMD ["npx", "nx", "serve", "api-gateway"]
