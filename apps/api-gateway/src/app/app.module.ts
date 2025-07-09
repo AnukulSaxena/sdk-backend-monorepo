@@ -6,7 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 // import { JwtAuthGuard } from '../auth/jwt.guard';
 import * as Joi from 'joi'; // For environment variable validation
-import { UserModule } from './user/user.module';
+import { UserModule } from '../user-service/user/user.module';
 
 @Module({
   imports: [

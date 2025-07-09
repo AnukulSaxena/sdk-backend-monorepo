@@ -2,7 +2,9 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 
-export type UserDocument = User & Document;
+export interface UserDocument extends User, Document {
+    comparePassword(candidatePassword: string): Promise<boolean>;
+}
 
 @Schema()
 export class User {
@@ -24,3 +26,8 @@ UserSchema.pre('save', async function (next) {
   }
   next();
 });
+
+
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password);
+};
