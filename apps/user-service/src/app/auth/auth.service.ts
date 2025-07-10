@@ -40,7 +40,7 @@ export class AuthService {
   }
 
   async loginUser(data: LoginUserDto) {
-    const user = await this.userModel.findOne({ email: data.email });
+    const user = await this.userModel.findOne({ email: data.email }).select('+password');
     if (!user) {
       throw new RpcException({
         message: 'User not found',

@@ -11,7 +11,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         options: {
           // Use environment variables for host and port!
           host: process.env.USER_SERVICE_HOST || 'localhost',
-          port: parseInt(process.env.USER_SERVICE_PORT, 10) || 3001,
+          port: parseInt(process.env.USER_SERVICE_PORT, 10) || 4000,
         },
       },
     ]),
